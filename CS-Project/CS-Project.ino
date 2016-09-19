@@ -3,7 +3,15 @@
  * Used with an Arudino UNO, and 8 LEDs.
  */
 
-int pins[] = {2, 4, 8, 9, 10, 11, 12, 13};
+
+ 
+/* 
+ *  Can change these to different pins.
+ *  
+ * NOTE: The pins in the array is equal to the LED configuration from left to right.
+ *       Pin 2 LED is farthest to the left, and Pin 13 LED is farthest to the right.
+ */
+int pins[] = {2, 4, 8, 9, 10, 11, 12, 13}; 
 int pinIndex = 7; /* Used to select last index of pins. The pins array will never exceed 8 unless more LEDs are added. */
 int pinCount = 8;
 
