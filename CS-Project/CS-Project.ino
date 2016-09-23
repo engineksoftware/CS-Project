@@ -1,19 +1,22 @@
+ #include <SoftwareSerial.h>
 /*
  * Converts a base-10 number into binary form, and lights the correct LEDs starting from the right.
  * Used with an Arudino UNO, and 8 LEDs.
  */
 
 
- 
 /* 
  *  Can change these to different pins.
  *  
  * NOTE: The pins in the array is equal to the LED configuration from left to right.
- *       Pin 2 LED is farthest to the left, and Pin 13 LED is farthest to the right.
+ *       Pin 6 LED is farthest to the left, and Pin 13 LED is farthest to the right.
  */
-int pins[] = {2, 4, 8, 9, 10, 11, 12, 13}; 
+int pins[] = {6, 7, 8, 9, 10, 11, 12, 13}; 
 int pinIndex = 7; /* Used to select last index of pins. The pins array will never exceed 8 unless more LEDs are added. */
 int pinCount = 8;
+char data;
+String message = "";
+SoftwareSerial bt(0,1);
 
 void setup() {
   for (int x = 0; x < pinCount; x++) {
@@ -21,22 +24,42 @@ void setup() {
   }
 
   Serial.begin(9600);
+  bt.begin(9600);
 }
 
-void loop() {
-  //convert(10);
+void loop() { 
 
-  int test[6];
-  test[0] = 1;
-  test[1] = 0;
-  test[2] = 1;
-  test[3] = 1;
-  test[4] = 0;
-  test[5] = 1;
+  /*
+   * This checks if anything has been received from the App. It reads the data, concats it into a String,
+   * and then stops once it reaches a '*'.
+   */
+  if(bt.available()){
 
-  twosComplement(test, 6);
+    data = bt.read();
+    message.concat(data);
+
+    if(data == '*'){
+      checkMessage(message);
+      message = "";
+      bt.read();
+    }
+    
+  }
   
-  while (1) {}
+}
+
+/*
+ * Takes the message received from the App, decides which function it will need to call,
+ * and then passes in the data from the App.
+ */
+void checkMessage(String message){
+
+   if(message.substring(0,1) = '1'){
+     message = message.substring(1,message.length() - 1);
+     convert(message.toInt());
+     
+   }
+
 }
 
 /*
@@ -55,6 +78,13 @@ void convert(int num) {
   int exponent = exponentMax;
   int arraySize = exponentMax + 1;
   int binaryArray[arraySize];
+
+  /*
+   * Cuts the lights back off.
+   */
+  for(int x = 0; x < pinCount; x++){
+    digitalWrite(pins[x], LOW);
+  }
   
   for (int x = 0; x <= exponentMax; x++) {
     if (num >= pow(2, exponent)) {
@@ -106,7 +136,10 @@ int findExponent(int num) {
  * 1 will then be taken from pinIndex, so that you can move left through the array of pins.
  */
 void light(int *binArray, int arraySize){
+  
   for (int x = (arraySize - 1); x >= 0; x--) {
+    Serial.print(binArray[x]);
+    
     if (binArray[x] == 1) {
       digitalWrite(pins[pinIndex], HIGH);
     } else {
@@ -116,6 +149,9 @@ void light(int *binArray, int arraySize){
     pinIndex -= 1;
 
   }
+
+  pinIndex = 7;
+  Serial.println();
 }
 
 void twosComplement(int *binArray, int arraySize){
@@ -144,9 +180,7 @@ void twosComplement(int *binArray, int arraySize){
     index -= 1;
   }
 
-  for(int x = 0; x < 8; x++){
-    Serial.print(newArray[x]);
-  }
+  light(newArray, 8);
   
 }
 
